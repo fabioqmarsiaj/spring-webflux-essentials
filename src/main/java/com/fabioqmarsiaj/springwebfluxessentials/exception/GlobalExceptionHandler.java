@@ -1,5 +1,6 @@
 package com.fabioqmarsiaj.springwebfluxessentials.exception;
 
+import ch.qos.logback.core.status.StatusUtil;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -9,12 +10,15 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.*;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Optional;
+
+import static org.springframework.boot.web.error.ErrorAttributeOptions.*;
 
 @Component
 @Order(-2)
@@ -34,11 +38,20 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
     }
 
     private Mono<ServerResponse> formatErrorResponse(ServerRequest request) {
-        Map<String, Object> errorAttributesMap = getErrorAttributes(request, ErrorAttributeOptions.of(ErrorAttributeOptions.Include.STACK_TRACE));
+        String query = request.uri().getQuery();
+
+        ErrorAttributeOptions errorAttributeOptions =
+                isTraceEnabled(query) ? of(Include.STACK_TRACE) : defaults();
+
+        Map<String, Object> errorAttributesMap = getErrorAttributes(request, errorAttributeOptions);
         int status = (int) Optional.ofNullable(errorAttributesMap.get("status")).orElse(500);
         return ServerResponse
                 .status(status)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(errorAttributesMap));
+    }
+
+    private boolean isTraceEnabled(String query) {
+        return StringUtils.hasText(query) && query.contains("trace=true");
     }
 }
