@@ -4,7 +4,9 @@ import com.fabioqmarsiaj.springwebfluxessentials.domain.Anime;
 import com.fabioqmarsiaj.springwebfluxessentials.repository.AnimeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -19,8 +21,13 @@ public class AnimeService {
         return repository.findAll();
     }
 
-    public Mono<Anime> findById(int id){
+    public Mono<Anime> findById(int id) {
         return repository.findById(id)
+                .switchIfEmpty(monoResponseStatusException())
                 .log();
+    }
+
+    public <T> Mono<T> monoResponseStatusException() {
+        return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found"));
     }
 }
