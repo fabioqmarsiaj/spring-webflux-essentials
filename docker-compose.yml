@@ -1,14 +1,20 @@
-version: '3.1'
+version: '3.7'
 
 services:
   db:
-    image: postgres
+    image: postgres:10.5
+    restart: always
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
+      POSTGRES_USER: Fabio
+      POSTGRES_PASSWORD: z26y25x24
+      PGDATA: /pg-data
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - webflux_data:/var/lib/postgresql/data
+      - pg-data:/pg-data
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./sql/fill_tables.sql:/docker-entrypoint-initdb.d/fill_tables.sql
 volumes:
   webflux_data:
+  pg-data:
