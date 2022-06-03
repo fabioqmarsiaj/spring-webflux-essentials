@@ -3,4 +3,8 @@ spring:
     url: r2dbc:postgresql://localhost:5432/postgres?schema=public
     username: Fabio
     password: z26y25x24
-
+logging:
+  level:
+    org:
+      springframework:
+        r2dbc: DEBUG
